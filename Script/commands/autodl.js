@@ -1,125 +1,121 @@
 const axios = require("axios");
 const fs = require("fs-extra");
-const path = require("path");
+const tinyurl = require("tinyurl");
 
 const baseApiUrl = async () => {
-    const base = await axios.get(
-        `https://raw.githubusercontent.com/Blankid018/D1PT0/main/baseApiUrl.json`,
-    );
-    return base.data.api;
+ const base = await axios.get("https://raw.githubusercontent.com/xnil6x404/Api-Zone/refs/heads/main/Api.json");
+ return base.data.xnil2;
 };
 
-module.exports.config = {
-    name: "tiksr",
-    version: "1.0",
-    author: "Mesbah Bb'e",
-    countDown: 5,
-    role: 0,
-    description: {
-        en: "Search for TikTok videos",
-    },
-    category: "MEDIA",
-    guide: {
-        en:
-            "{pn} <search> - <optional: number of results | blank>" +
-            "\nExample:" +
-            "\n{pn} caredit - 50",
-    },
+const config = {
+ name: "autodl",
+ version: "3.0",
+ author: "xnil",
+ credits: "Dipto & xnil6x",
+ description: "Auto download videos/images from TikTok, YouTube, FB, IG and more.",
+ category: "media",
+ commandCategory: "media",
+ usePrefix: true,
+ prefix: true,
+ dependencies: {
+ "tinyurl": "",
+ "fs-extra": ""
+ }
 };
 
-module.exports.onStart = async function ({ api, args, event }) {
-    let search = args.join(" ");
-    let searchLimit = 10;
+const onStart = () => {};
 
-    const match = search.match(/^(.+)\s*-\s*(\d+)$/);
-    if (match) {
-        search = match[1].trim();
-        searchLimit = parseInt(match[2], 10);
-    }
+const onChat = async ({ api, event }) => {
+ const body = event.body?.trim();
+ if (!body) return;
 
-    const apiUrl = `${await baseApiUrl()}/tiktoksearch?search=${encodeURIComponent(search)}&limit=${searchLimit}`;
+ const supportedSites = [
+ "https://vt.tiktok.com", "https://www.tiktok.com/", "https://vm.tiktok.com",
+ "https://www.facebook.com", "https://fb.watch",
+ "https://www.instagram.com/", "https://www.instagram.com/p/",
+ "https://youtu.be/", "https://www.youtube.com/", "https://youtube.com/watch",
+ "https://x.com/", "https://twitter.com/", "https://pin.it/"
+ ];
 
-    try {
-        const response = await axios.get(apiUrl);
-        const data = response.data.data;
+ if (!supportedSites.some(site => body.includes(site))) return;
 
-        if (!data || data.length === 0) {
-            api.sendMessage(
-                `No results found for '${search}'. Please try again with a different search term.`,
-                event.threadID,
-            );
-            return;
-        }
+ const startTime = Date.now();
+ const waitMsg = await api.sendMessage("⏳ Fetching media for you...\nPlease hold on!", event.threadID);
 
-        let replyOption = "🔍 Search Results:\n\n";
-        for (let i = 0; i < data.length; i++) {
-            const video = data[i];
-            replyOption += `${i + 1}. ${video.title}\n\n`;
-        }
-        replyOption +=
-            "Reply with the number of the video you want to download.";
+ try {
+ const apiUrl = `${await baseApiUrl()}/alldl?url=${encodeURIComponent(body)}`;
+ const { data } = await axios.get(apiUrl);
+ const content = data?.content;
 
-        const reply = await api.sendMessage(replyOption, event.threadID);
-        const replyMessageID = reply.messageID;
+ const mediaLink = content?.result || content?.url;
+ if (!mediaLink) {
+ return api.sendMessage("❌ Unable to retrieve media. Please check the link or try again later.", event.threadID, event.messageID);
+ }
 
-        global.GoatBot.onReply.set(replyMessageID, {
-            commandName: this.config.name,
-            author: event.senderID,
-            messageID: replyMessageID,
-            results: data,
-        });
-    } catch (error) {
-        console.error(error);
-        api.sendMessage(`Error: ${error.message}`, event.threadID); // Corrected error message formatting
-    }
+ let extension = ".mp4";
+ let mediaIcon = "🎬";
+ let mediaLabel = "Video";
+
+ if (mediaLink.includes(".jpg") || mediaLink.includes(".jpeg")) {
+ extension = ".jpg";
+ mediaIcon = "🖼️";
+ mediaLabel = "Photo";
+ } else if (mediaLink.includes(".png")) {
+ extension = ".png";
+ mediaIcon = "🖼️";
+ mediaLabel = "Photo";
+ }
+
+ const fileName = `media-${event.senderID}-${Date.now()}${extension}`;
+ const filePath = `${__dirname}/cache/${fileName}`;
+ fs.ensureDirSync(`${__dirname}/cache`);
+
+ const buffer = await axios.get(mediaLink, { responseType: "arraybuffer" }).then(res => res.data);
+ fs.writeFileSync(filePath, Buffer.from(buffer, "binary"));
+
+ const shortUrl = await tinyurl.shorten(mediaLink);
+ const duration = ((Date.now() - startTime) / 1000).toFixed(2);
+
+ api.unsendMessage(waitMsg.messageID);
+
+ const stylishMessage = `
+╭━━━[ ✅ 𝗠𝗲𝗱𝗶𝗮 𝗗𝗼𝘄𝗻𝗹𝗼𝗮𝗱𝗲𝗱 ]━━━╮
+┃ ${mediaIcon} Type: ${mediaLabel}
+┃ ⚡ Speed: ${duration}s
+┃ 🔗 Link: ${shortUrl}
+╰━━━━━━━━━━━━━━━━━━━━━━╯
+Enjoy your ${mediaLabel.toLowerCase()}! Made with ❤️ by xnil.
+`;
+
+ await api.sendMessage(
+ {
+ body: stylishMessage,
+ attachment: fs.createReadStream(filePath)
+ },
+ event.threadID,
+ () => fs.unlinkSync(filePath),
+ event.messageID
+ );
+
+ } catch (err) {
+ console.error("[autodl] Error:", err);
+ api.setMessageReaction("❌", event.messageID, true);
+
+ const errorMsg = `
+❌ Oops! Something went wrong.
+━━━━━━━━━━━━━━━
+• Error: ${err.message}
+• Try again later or check your link.
+━━━━━━━━━━━━━━━`;
+
+ api.sendMessage(errorMsg, event.threadID, event.messageID);
+ }
 };
 
-module.exports.onReply = async function ({ event, api, Reply }) {
-    const { author, results } = Reply;
-
-    if (event.senderID !== author) return;
-
-    const selectedNumber = parseInt(event.body);
-
-    if (
-        isNaN(selectedNumber) ||
-        selectedNumber <= 0 ||
-        selectedNumber > results.length
-    ) {
-        api.sendMessage(
-            "Invalid option selected. Please reply with a valid number.",
-            event.threadID,
-        );
-        return;
-    }
-
-    await api.unsendMessage(Reply.messageID);
-    const selectedVideo = results[selectedNumber - 1];
-
-    try {
-        const response = await axios.get(selectedVideo.video, {
-            responseType: "arraybuffer",
-        });
-        const videoBuffer = response.data;
-
-        const filename = `${selectedVideo.title.replace(/[^\w\s]/gi, "")}.mp4`;
-        const filepath = path.join(__dirname, filename);
-
-        await fs.writeFile(filepath, videoBuffer);
-
-        let infoMessage = `🎥 Video Title: ${selectedVideo.title}\n`;
-        infoMessage += `🔗 Video URL: ${selectedVideo.video}\n`;
-
-        api.sendMessage(
-            { body: infoMessage, attachment: fs.createReadStream(filepath) },
-            event.threadID,
-        );
-        await fs.unlink(filepath);
-    } catch (error) {
-        console.error(error);
-        api.sendMessage(
-            "An error occurred while downloading the TikTok video.",
-            event.threadID,
-        );
-    }
+module.exports = {
+ config,
+ onStart,
+ onChat,
+ run: onStart,
+ handleEvent: onChat
 };
