@@ -11,78 +11,31 @@ module.exports = {
 		author: "NTKhang",
 		countDown: 5,
 		role: 0,
-		description: {
-			vi: "Thiết kế thẻ rank theo ý bạn",
-			en: "Design rank card by your own"
-		},
+		description: "Design rank card by your own",
 		category: "rank",
-		guide: {
-			vi: {
-				body: "   {pn} [maincolor | subcolor | linecolor | expbarcolor | progresscolor | alphasubcolor | textcolor | namecolor | expcolor | rankcolor | levelcolor | reset] <value>"
-					+ "\n   Trong đó: "
-					+ "\n  + maincolor | background <value>: background chính của thẻ rank"
-					+ "\n  + subcolor <value>: background phụ"
-					+ "\n  + linecolor <value>: màu của đường kẻ giữa background chính và phụ"
-					+ "\n  + expbarcolor <value>: màu của thanh exp"
-					+ "\n  + progresscolor <value>: màu của thanh exp hiện tại"
-					+ "\n  + alphasubcolor <value>: độ mờ của background phụ (từ 0 -> 1)"
-					+ "\n  + textcolor <value>: màu của chữ (hex color or rgba)"
-					+ "\n  + namecolor <value>: màu của tên"
-					+ "\n  + expcolor <value>: màu của exp"
-					+ "\n  + rankcolor <value>: màu của rank"
-					+ "\n  + levelcolor <value>: màu của level"
-					+ "\n    • <value> có thể là mã hex color, rgb, rgba, gradient (mỗi màu cách nhau bởi dấu cách) hoặc url hình ảnh"
-					+ "\n    • Nếu bạn muốn dùng gradient, hãy nhập nhiều mã màu cách nhau bởi dấu cách"
-					+ "\n   {pn} reset: reset tất cả về mặc định"
-					+ "\n   Ví dụ:"
-					+ "\n    {pn} maincolor #fff000"
-					+ "\n    {pn} maincolor #0093E9 #80D0C7"
-					+ "\n    {pn} subcolor rgba(255,136,86,0.4)"
-					+ "\n    {pn} reset",
-				attachment: {
-					[`${__dirname}/assets/guide/customrankcard_1.jpg`]: "https://i.ibb.co/BZ2Qgs1/image.png",
-					[`${__dirname}/assets/guide/customrankcard_2.png`]: "https://i.ibb.co/wy1ZHHL/image.png"
-				}
-			},
-			en: {
-				body: "   {pn} [maincolor | subcolor | linecolor | progresscolor | alphasubcolor | textcolor | namecolor | expcolor | rankcolor | levelcolor | reset] <value>"
-					+ "\n   In which: "
-					+ "\n  + maincolor | background <value>: main background of rank card"
-					+ "\n  + subcolor <value>: sub background"
-					+ "\n  + linecolor <value>: color of line between main and sub background"
-					+ "\n  + expbarcolor <value>: color of exp bar"
-					+ "\n  + progresscolor <value>: color of current exp bar"
-					+ "\n  + alphasubcolor <value>: opacity of sub background (from 0 -> 1)"
-					+ "\n  + textcolor <value>: color of text (hex color or rgba)"
-					+ "\n  + namecolor <value>: color of name"
-					+ "\n  + expcolor <value>: color of exp"
-					+ "\n  + rankcolor <value>: color of rank"
-					+ "\n  + levelcolor <value>: color of level"
-					+ "\n    • <value> can be hex color, rgb, rgba, gradient (each color is separated by space) or image url"
-					+ "\n    • If you want to use gradient, please enter many colors separated by space"
-					+ "\n   {pn} reset: reset all to default"
-					+ "\n   Example:"
-					+ "\n    {pn} maincolor #fff000"
-					+ "\n    {pn} subcolor rgba(255,136,86,0.4)"
-					+ "\n    {pn} reset",
-				attachment: {
-					[`${__dirname}/assets/guide/customrankcard_1.jpg`]: "https://i.ibb.co/BZ2Qgs1/image.png",
-					[`${__dirname}/assets/guide/customrankcard_2.png`]: "https://i.ibb.co/wy1ZHHL/image.png"
-				}
-			}
-		}
+		guide: "   {pn} [maincolor | subcolor | linecolor | progresscolor | alphasubcolor | textcolor | namecolor | expcolor | rankcolor | levelcolor | reset] <value>"
+			+ "\n   In which: "
+			+ "\n  + maincolor | background <value>: main background of rank card"
+			+ "\n  + subcolor <value>: sub background"
+			+ "\n  + linecolor <value>: color of line between main and sub background"
+			+ "\n  + expbarcolor <value>: color of exp bar"
+			+ "\n  + progresscolor <value>: color of current exp bar"
+			+ "\n  + alphasubcolor <value>: opacity of sub background (from 0 -> 1)"
+			+ "\n  + textcolor <value>: color of text (hex color or rgba)"
+			+ "\n  + namecolor <value>: color of name"
+			+ "\n  + expcolor <value>: color of exp"
+			+ "\n  + rankcolor <value>: color of rank"
+			+ "\n  + levelcolor <value>: color of level"
+			+ "\n    • <value> can be hex color, rgb, rgba, gradient (each color is separated by space) or image url"
+			+ "\n    • If you want to use gradient, please enter many colors separated by space"
+			+ "\n   {pn} reset: reset all to default"
+			+ "\n   Example:"
+			+ "\n    {pn} maincolor #fff000"
+			+ "\n    {pn} subcolor rgba(255,136,86,0.4)"
+			+ "\n    {pn} reset",
 	},
 
 	langs: {
-		vi: {
-			invalidImage: "Url hình ảnh không hợp lệ, vui lòng chọn 1 url với trang đích là hình ảnh (jpg, jpeg, png, gif), bạn có thể tải ảnh lên trang https://imgbb.com/ và chọn mục \"lấy link trực tiếp\" để lấy url hình ảnh",
-			invalidAttachment: "File đính kèm không phải là hình ảnh",
-			invalidColor: "Mã màu không hợp lệ, vui lòng nhập mã hex color (6 chữ số) hoặc mã màu rgba",
-			notSupportImage: "Url hình ảnh không được hỗ trợ với tùy chọn \"%1\"",
-			success: "Đã lưu thay đổi của bạn, bên dưới là phần xem trước",
-			reseted: "Đã reset tất cả cài đặt về mặc định",
-			invalidAlpha: "Vui lòng chọn chỉ số trong khoảng từ 0 -> 1"
-		},
 		en: {
 			invalidImage: "Invalid image url, please choose an url with image destination (jpg, jpeg, png, gif), you can upload image to https://imgbb.com/ and choose \"get direct link\" to get image url",
 			invalidAttachment: "Invalid attachment, please choose an image file",
