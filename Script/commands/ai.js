@@ -1,7 +1,7 @@
 const axios = require('axios');
 
-// --- IMPORTANT: PASTE YOUR GEMINI API KEY HERE ---
-// For better security, consider using environment variables if your platform supports them.
+// --- 🚨 IMPORTANT: PASTE YOUR REAL GEMINI API KEY HERE ---
+// Replace "PASTE_YOUR_KEY_HERE" with your actual key. Keep it secret!
 const GEMINI_API_KEY = "AIzaSyBVmU2I4oHWKKfutGnXUOyMjLZglxcSPpA";
 
 /**
@@ -33,37 +33,42 @@ async function urlToGenerativePart(url) {
 module.exports = {
     config: {
         name: 'ai',
-        version: '1.1', // Updated version
+        version: '1.2', // Updated version
         credit: 'Google Gemini Official API',
-        description: 'Connects to the official Gemini AI API',
+        description: 'A friendly and witty AI assistant powered by Gemini', // Updated description
         cooldowns: 5,
         hasPermssion: 0,
         commandCategory: 'google',
         usages: {
-            en: '{pn} message | photo',
+            en: '{pn} [your question] | Reply to an image with {pn} [question about image]',
         }
     },
 
     run: async function({ api, args, event }) {
-        const prompt = args.join(' ');
+        // This instruction is sent with every prompt to guide the AI's tone and personality.
+        const persona = `Your name is Gemini. You are a friendly, witty, and helpful AI assistant. 
+        Your goal is to provide accurate information in a fun, conversational, and sometimes humorous way. 
+        Feel free to use emojis to make the conversation more lively. 
+        Now, answer the user's request: `;
+
+        const userPrompt = args.join(' ');
         
         try {
             let requestBody;
-            let apiUrl;
+            const apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${GEMINI_API_KEY}`;
 
             // Check if the command is a reply to a message with an image
             if (event.type === 'message_reply' && event.messageReply.attachments?.[0]?.type === 'photo') {
                 const attachment = event.messageReply.attachments[0];
                 const imagePart = await urlToGenerativePart(attachment.url);
                 
-                // Use the Vision model for image and text
-                apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro-vision:generateContent?key=${GEMINI_API_KEY}`;
-                
-                // Construct the request body for a multimodal query
+                const finalPrompt = persona + userPrompt;
+
+                // Construct the request body for a multimodal query (text + image)
                 requestBody = {
                     contents: [{
                         parts: [
-                            { text: prompt },
+                            { text: finalPrompt },
                             imagePart
                         ]
                     }]
@@ -71,18 +76,17 @@ module.exports = {
 
             } else {
                 // This is a text-only request
-                if (!prompt) {
-                    const welcomeMessage = "𖣘 -𝐁𝐎𝐓 ⚠️\nAssalamu Alaikum\n\nHow can I assist you today?";
+                if (!userPrompt) {
+                    const welcomeMessage = "Hey there! 👋 I'm Gemini, your friendly AI assistant.\n\nAsk me anything, or reply to a photo with a question about it!";
                     return api.sendMessage(welcomeMessage, event.threadID, event.messageID);
                 }
                 
-                // Use the standard text model
-                apiUrl = `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${GEMINI_API_KEY}`;
+                const finalPrompt = persona + userPrompt;
                 
                 // Construct the request body for a text-only query
                 requestBody = {
                     contents: [{
-                        parts: [{ text: prompt }]
+                        parts: [{ text: finalPrompt }]
                     }]
                 };
             }
@@ -98,13 +102,18 @@ module.exports = {
             if (text) {
                 api.sendMessage(text, event.threadID, event.messageID);
             } else {
-                throw new Error("No content received from Gemini API.");
+                const stopReason = response.data?.candidates?.[0]?.finishReason;
+                if (stopReason && stopReason !== 'STOP') {
+                     api.sendMessage(`Whoops! My circuits got a little tangled. The response was blocked because: ${stopReason}. Maybe try asking in a different way? 🤔`, event.threadID, event.messageID);
+                } else {
+                     throw new Error("No content received from Gemini API. The response might be empty or blocked.");
+                }
             }
 
         } catch (error) {
             console.error("Gemini API Error:", error.response?.data || error.message);
             const errorMessage = error.response?.data?.error?.message || "An unknown error occurred while contacting the Gemini API.";
-            api.sendMessage(`API Error: ${errorMessage}`, event.threadID, event.messageID);
+            api.sendMessage(`Uh oh! Houston, we have a problem. 🚀 The API returned an error: ${errorMessage}`, event.threadID, event.messageID);
         }
     }
 };
